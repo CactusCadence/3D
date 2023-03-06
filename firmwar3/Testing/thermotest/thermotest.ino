@@ -23,6 +23,7 @@ void setup() {
   SPI.begin();
 
   pinMode(thermocoupleCS, OUTPUT);
+  pinMode(heaterRelay, OUTPUT);
 
   Serial.println("MAX6675 test");
 
@@ -52,10 +53,12 @@ void loop() {
 
   auto result = UpdatePID(tempC);
 
-  if(result > 1.0) {
+  if(result > 0.0) {
     HeaterON();
+    Serial.println("ON");
   } else {
     HeaterOFF();
+    Serial.println("OFF");
   }
 
   // For the MAX6675 to update, you must delay AT LEAST 250ms between reads!
@@ -63,7 +66,7 @@ void loop() {
 }
 
 // points
-float desiredPoint = 60.0; // set point
+float desiredPoint = 260.0; // set point
 float measuredPoint; // plant measurement
 float error = -9999;  // set to some absurd default value
 
