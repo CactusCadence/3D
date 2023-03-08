@@ -13,7 +13,7 @@
 #define NO_OP 0x00
 
 const int DELAY = 250;
-const int SIZE = 12;
+const int BUFFER_SIZE = 12;
 
 //MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
@@ -24,8 +24,6 @@ void setup() {
 
   pinMode(thermocoupleCS, OUTPUT);
   pinMode(heaterRelay, OUTPUT);
-
-  Serial.println("MAX6675 test");
 
   // wait for MAX chip to stabilize
   delay(DELAY);
@@ -80,7 +78,7 @@ const double MAX = 0.5;
 bool isClamped = false;
 
 // storage variables
-double measurements[SIZE];
+double measurements[BUFFER_SIZE];
 double integral = 0.0;
 double derivative = 0.0;
 
@@ -94,7 +92,7 @@ double UpdatePID(double newMeasuredPoint) {
   
   // calculate the error
   measuredPoint = newMeasuredPoint;
-  Prepend(measuredPoint, measurements, SIZE);
+  Prepend(measuredPoint, measurements, BUFFER_SIZE);
   double error = measuredPoint - desiredPoint;
   auto deltaT = DELAY / 1000.0;
 
@@ -108,16 +106,16 @@ double UpdatePID(double newMeasuredPoint) {
   }
 
   // recalculate derivative
-  if(measurements[SIZE-1] != 0.0) {
+  if(measurements[BUFFER_SIZE-1] != 0.0) {
     double temp = 0.0;
     const int AVG = 3;
 
     // take an average of AVG error points
     for(uint i = 1; i <= AVG; ++i)
     {
-      double lastError = measurements[SIZE-i] - desiredPoint;
+      double lastError = measurements[BUFFER_SIZE-i] - desiredPoint;
 
-      temp += (error - lastError) / (deltaT * SIZE);      
+      temp += (error - lastError) / (deltaT * BUFFER_SIZE);      
     }
     derivative = temp / AVG;
   }
@@ -128,7 +126,7 @@ double UpdatePID(double newMeasuredPoint) {
   Serial.printf("Integral:%f\n", resultIntegral);
   Serial.printf("Derivative:%f\n", resultDerivative);
   Serial.printf("Set_Point:%f\n", desiredPoint);
-  //printArray(measurements, SIZE);
+  //printArray(measurements, BUFFER_SIZE);
 
   Serial.println();
 
