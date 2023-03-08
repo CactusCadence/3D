@@ -117,18 +117,18 @@ void loop() {
 }
 
 // points
-double desiredPoint = 170.0; // set point
+double desiredPoint = 260.0; // set point
 double measuredPoint; // plant measurement
 double error = -9999;  // set to some absurd default value
 
 // gains
-double kProportional = 1.4;  // proportional gain
-double kIntegral = 0.1;    // integral gain
-double kDerivative = 3.0;  // derivative gain
+double kProportional = 0.69;  // proportional gain
+double kIntegral = 0.04;    // integral gain
+double kDerivative = 3.2;  // derivative gain
 
 // clamping limits
-const double MIN = -1;
-const double MAX = 2;
+const double MIN = -0.5;
+const double MAX = 0.5;
 bool isClamped = false;
 
 // storage variables
@@ -162,9 +162,17 @@ double UpdatePID(double newMeasuredPoint) {
 
   // recalculate derivative
   if(measurements[SIZE-1] != 0.0) {
-    lastError = measurements[SIZE-1] - desiredPoint;
+    double temp = 0.0;
+    const int AVG = 3;
 
-    derivative = (error - lastError) / (deltaT * SIZE);
+    // take an average of AVG error points
+    for(uint i = 1; i <= AVG; ++i)
+    {
+      lastError = measurements[SIZE-i] - desiredPoint;
+
+      temp += (error - lastError) / (deltaT * SIZE);      
+    }
+    derivative = temp / AVG;
   }
   resultDerivative = derivative * kDerivative;
 
