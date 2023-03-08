@@ -17,12 +17,12 @@
 ExtruderHeater::ExtruderHeater()
     : DELAY(250), BUFFER_SIZE(12)
 {
-    thermocouple.speedMaximum = 4300000;
-    thermocouple.dataOrder = MSBFIRST;
-    thermocouple.dataMode = SPI_MODE0;
+    thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
     setHeater(9);
     setCS(10);
+
+    SPI.begin();
 }
 
 /**
