@@ -119,7 +119,6 @@ void loop() {
 // points
 double desiredPoint = 260.0; // set point
 double measuredPoint; // plant measurement
-double error = -9999;  // set to some absurd default value
 
 // gains
 double kProportional = 0.69;  // proportional gain
@@ -135,7 +134,6 @@ bool isClamped = false;
 double measurements[SIZE];
 double integral = 0.0;
 double derivative = 0.0;
-double lastError = -9999;  // set to some absurd default value
 
 double resultProportional;
 double resultIntegral;
@@ -148,7 +146,7 @@ double UpdatePID(double newMeasuredPoint) {
   // calculate the error
   measuredPoint = newMeasuredPoint;
   Prepend(measuredPoint, measurements, SIZE);
-  error = measuredPoint - desiredPoint;
+  double error = measuredPoint - desiredPoint;
   auto deltaT = DELAY / 1000.0;
 
   // recalculate proportional
@@ -168,7 +166,7 @@ double UpdatePID(double newMeasuredPoint) {
     // take an average of AVG error points
     for(uint i = 1; i <= AVG; ++i)
     {
-      lastError = measurements[SIZE-i] - desiredPoint;
+      double lastError = measurements[SIZE-i] - desiredPoint;
 
       temp += (error - lastError) / (deltaT * SIZE);      
     }
