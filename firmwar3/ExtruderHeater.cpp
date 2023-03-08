@@ -37,3 +37,15 @@ void ExtruderHeater::setCS(unsigned int pin) {
 
     return;
 }
+
+void ExtruderHeater::HeaterOn() {
+    digitalWrite(heaterRelay, LOW);
+
+    return;
+}
+
+void ExtruderHeater::HeaterOff() {
+    digitalWrite(heaterRelay, HIGH);
+
+    return;
+}

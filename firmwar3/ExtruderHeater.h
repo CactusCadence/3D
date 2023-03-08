@@ -21,6 +21,9 @@ public:
   void setCS(unsigned int);
 
 private:
+  void HeaterOn();
+  void HeaterOff();
+
   SPISettings thermocouple;
 
   unsigned int heaterRelay;
