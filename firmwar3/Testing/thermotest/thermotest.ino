@@ -117,18 +117,18 @@ void loop() {
 }
 
 // points
-double desiredPoint = 160.0; // set point
+double desiredPoint = 170.0; // set point
 double measuredPoint; // plant measurement
 double error = -9999;  // set to some absurd default value
 
 // gains
-double kProportional = 1.1;  // proportional gain
-double kIntegral = 0.3;    // integral gain
-double kDerivative = 1.0;  // derivative gain
+double kProportional = 1.4;  // proportional gain
+double kIntegral = 0.1;    // integral gain
+double kDerivative = 3.0;  // derivative gain
 
 // clamping limits
 const double MIN = -1;
-const double MAX = 4;
+const double MAX = 2;
 bool isClamped = false;
 
 // storage variables
@@ -168,7 +168,7 @@ double UpdatePID(double newMeasuredPoint) {
   }
   resultDerivative = derivative * kDerivative;
 
-  double sum = resultProportional + resultIntegral; //+ resultDerivative;
+  double sum = resultProportional + resultIntegral + resultDerivative;
   Serial.printf("Proportional:%f\n", resultProportional);
   Serial.printf("Integral:%f\n", resultIntegral);
   Serial.printf("Derivative:%f\n", resultDerivative);
