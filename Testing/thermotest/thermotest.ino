@@ -2,6 +2,7 @@
 // https://learn.adafruit.com/thermocouple/
 
 #include <SPI.h>
+#include "ExtruderHeater.h"
 #include "helpers.h"
 
 // MAX6675 Pins
@@ -20,10 +21,8 @@ SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
 
 void setup() {
   Serial.begin(9600);
-  SPI.begin();
 
-  pinMode(thermocoupleCS, OUTPUT);
-  pinMode(heaterRelay, OUTPUT);
+  ExtruderHeater heater;
 
   // wait for MAX chip to stabilize
   delay(DELAY);
