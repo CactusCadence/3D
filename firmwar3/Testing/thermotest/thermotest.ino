@@ -14,7 +14,7 @@
 #define NO_OP 0x00
 
 const int DELAY = 250;
-const int SIZE = 10;
+const int SIZE = 12;
 
 //MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
@@ -23,9 +23,9 @@ SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
 //Sliiiiiiiiiiiiide to the left
 // <--<--<--
 // [1, 2, 3] -> [2, 3, 0]
-void SlideLeft(float* arr, unsigned int size)
+void SlideLeft(double* arr, unsigned int size)
 {
-  memmove(arr, arr + 1, sizeof(float) * size);
+  memmove(arr, arr + 1, sizeof(double) * size);
   arr[size - 1] = 0.0;
 
   return;
@@ -34,16 +34,16 @@ void SlideLeft(float* arr, unsigned int size)
 //Sliiiiiiiiiiiiide to the right
 // -->-->-->
 // [1, 2, 3] -> [0, 1, 2]
-void SlideRight(float* arr, unsigned int size)
+void SlideRight(double* arr, unsigned int size)
 {
-  memmove(arr + 1, arr, sizeof(float) * size);
+  memmove(arr + 1, arr, sizeof(double) * size);
   arr[0] = 0.0;
 
   return;
 }
 
 // (...chris-cross...?)
-void Prepend(float val, float* arr, unsigned int size)
+void Prepend(double val, double* arr, unsigned int size)
 {
   SlideRight(arr, size);
   arr[0] = val;
@@ -52,7 +52,7 @@ void Prepend(float val, float* arr, unsigned int size)
 }
 
 // print the contents of a given array
-void printArray(float* arr, unsigned int size)
+void printArray(double* arr, unsigned int size)
 {
   Serial.print("[");
   for(uint i = 0; i < size-1; ++i)
@@ -96,13 +96,13 @@ void loop() {
   SPI.endTransaction();
   digitalWrite(thermocoupleCS, HIGH);
 
-  float tempC = (byteBuffer >> 3) *  0.25;
+  double tempC = (byteBuffer >> 3) *  0.25;
 
   Serial.printf("Actual:%f\n",tempC);
 
   auto result = UpdatePID(tempC);
 
-  if(result < 0.0) {
+  if(result < -1.0) {
     HeaterON();
     Serial.println("ON");
   } else {
@@ -115,35 +115,34 @@ void loop() {
 }
 
 // points
-float desiredPoint = 260.0; // set point
-float measuredPoint; // plant measurement
-float error = -9999;  // set to some absurd default value
+double desiredPoint = 260.0; // set point
+double measuredPoint; // plant measurement
+double error = -9999;  // set to some absurd default value
 
 // gains
-float kProportional = 1.0;  // proportional gain
-float kIntegral = 1.0;    // integral gain
-float kDerivative = 1.0;  // derivative gain
+double kProportional = 1.0;  // proportional gain
+double kIntegral = 1.0;    // integral gain
+double kDerivative = 1.0;  // derivative gain
 
 // storage variables
-float measurements[SIZE] = {69,69,69,69,4,3,3,2};
-float integral = 0.0;
-float derivative = 0.0;
-float lastError = -9999;  // set to some absurd default value
+double measurements[SIZE];
+double integral = 0.0;
+double derivative = 0.0;
+double lastError = -9999;  // set to some absurd default value
 
-float resultProportional;
-float resultIntegral;
-float resultDerivative;
+double resultProportional;
+double resultIntegral;
+double resultDerivative;
 
-float output;
+double output;
 
-float UpdatePID(float newMeasuredPoint) {
+double UpdatePID(double newMeasuredPoint) {
   
   // calculate the error
   measuredPoint = newMeasuredPoint;
   Prepend(measuredPoint, measurements, SIZE);
-  lastError = error;
   error = measuredPoint - desiredPoint;
-  float deltaT = DELAY / 1000.0;
+  auto deltaT = DELAY / 1000.0;
 
   // recalculate proportional
   resultProportional = error * kProportional;
@@ -153,12 +152,15 @@ float UpdatePID(float newMeasuredPoint) {
   resultIntegral = integral * kIntegral;
 
   // recalculate derivative
-  if(lastError != -9999) {
-    derivative = (error - lastError) / deltaT;
+  if(measurements[SIZE-1] != 0.0) {
+    lastError = measurements[SIZE-1] - desiredPoint;
+
+    derivative = (error - lastError) / (deltaT * SIZE);
+    Serial.println(deltaT * SIZE);
   }
   resultDerivative = derivative * kDerivative;
 
-  //float sum = resultProportional + resultIntegral + resultDerivative;
+  //double sum = resultProportional + resultIntegral + resultDerivative;
   Serial.printf("Proportional:%f\n", resultProportional);
   Serial.printf("Integral:%f\n", resultIntegral);
   Serial.printf("Derivative:%f\n", resultDerivative);
