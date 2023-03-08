@@ -18,11 +18,10 @@ const int BUFFER_SIZE = 12;
 
 //MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
+ExtruderHeater heater;
 
 void setup() {
   Serial.begin(9600);
-
-  ExtruderHeater heater;
 
   // wait for MAX chip to stabilize
   delay(DELAY);

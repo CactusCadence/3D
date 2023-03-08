@@ -23,9 +23,13 @@ public:
   void setHeater(unsigned int);
   void setCS(unsigned int);
 
+  void Update();
+
 private:
-  void HeaterOn();
-  void HeaterOff();
+  bool checkTime();
+
+  void heaterOn();
+  void heaterOff();
 
   double target;
 
@@ -34,8 +38,9 @@ private:
   unsigned int heaterRelay;
   unsigned int thermocoupleCS;
 
-  const unsigned int DELAY;
   const unsigned int BUFFER_SIZE;
+  const unsigned long DELAY;
+  unsigned long lastTime;
 };
 
 #endif  //INCLUDED_EXTRUDER_HEATER_H

@@ -15,7 +15,7 @@
  * Default Constructor
 */
 ExtruderHeater::ExtruderHeater()
-    : target(-1.0), DELAY(250), BUFFER_SIZE(12)
+    : target(-1.0), BUFFER_SIZE(12), DELAY(250), lastTime(0)
 {
     thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
@@ -29,7 +29,7 @@ ExtruderHeater::ExtruderHeater()
  * Pass default target temperature
 */
 ExtruderHeater::ExtruderHeater(double newTarget)
-    : target(newTarget), DELAY(250), BUFFER_SIZE(12)
+    : target(newTarget), BUFFER_SIZE(12), DELAY(250), lastTime(0)
 {
     thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
@@ -78,9 +78,46 @@ void ExtruderHeater::setCS(unsigned int pin) {
 }
 
 /**
+ * Called once per loop; read the thermocouple
+ * and run the PID controller
+*/
+void ExtruderHeater::Update() {
+    
+    // check the elapsed time (non-blocking)
+    if(checkTime()) {
+
+        // read the thermocouple
+        
+
+        // run the PID controller
+
+    }
+}
+
+/**
+ * Check the elapsed time since last call. If enough time has
+ * passed according to @param DELAY, update the last recorded time
+ * 
+ * @returns Whether enough time has passed
+ * @retval true Enough time has passed; last recorded time was updated
+ * @retval false Not enough time has passed
+*/
+bool ExtruderHeater::checkTime() {
+
+    unsigned long currentTime = millis();
+    if(currentTime - DELAY > lastTime) {
+        lastTime = currentTime;
+        
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Turn the heater on
 */
-void ExtruderHeater::HeaterOn() {
+void ExtruderHeater::heaterOn() {
 
     digitalWrite(heaterRelay, LOW);
 
@@ -90,7 +127,7 @@ void ExtruderHeater::HeaterOn() {
 /**
  * Turn the heater off
 */
-void ExtruderHeater::HeaterOff() {
+void ExtruderHeater::heaterOff() {
 
     digitalWrite(heaterRelay, HIGH);
 
