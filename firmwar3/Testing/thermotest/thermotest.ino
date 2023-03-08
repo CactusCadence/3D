@@ -14,9 +14,58 @@
 #define NO_OP 0x00
 
 const int DELAY = 250;
+const int SIZE = 10;
 
 //MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
+
+// Helper functions
+//Sliiiiiiiiiiiiide to the left
+// <--<--<--
+// [1, 2, 3] -> [2, 3, 0]
+void SlideLeft(float* arr, unsigned int size)
+{
+  memmove(arr, arr + 1, sizeof(float) * size);
+  arr[size - 1] = 0.0;
+
+  return;
+}
+
+//Sliiiiiiiiiiiiide to the right
+// -->-->-->
+// [1, 2, 3] -> [0, 1, 2]
+void SlideRight(float* arr, unsigned int size)
+{
+  memmove(arr + 1, arr, sizeof(float) * size);
+  arr[0] = 0.0;
+
+  return;
+}
+
+// (...chris-cross...?)
+void Prepend(float val, float* arr, unsigned int size)
+{
+  SlideRight(arr, size);
+  arr[0] = val;
+
+  return;
+}
+
+// print the contents of a given array
+void printArray(float* arr, unsigned int size)
+{
+  Serial.print("[");
+  for(uint i = 0; i < size-1; ++i)
+  {
+    Serial.print(arr[i]);
+    Serial.print(", ");    
+  }
+  Serial.print(arr[size-1]);
+
+  Serial.print("]\n");
+
+  return;
+}
 
 void setup() {
   Serial.begin(9600);
@@ -53,7 +102,7 @@ void loop() {
 
   auto result = UpdatePID(tempC);
 
-  if(result > 0.0) {
+  if(result < 0.0) {
     HeaterON();
     Serial.println("ON");
   } else {
@@ -76,6 +125,7 @@ float kIntegral = 1.0;    // integral gain
 float kDerivative = 1.0;  // derivative gain
 
 // storage variables
+float measurements[SIZE] = {69,69,69,69,4,3,3,2};
 float integral = 0.0;
 float derivative = 0.0;
 float lastError = -9999;  // set to some absurd default value
@@ -90,8 +140,9 @@ float UpdatePID(float newMeasuredPoint) {
   
   // calculate the error
   measuredPoint = newMeasuredPoint;
+  Prepend(measuredPoint, measurements, SIZE);
   lastError = error;
-  error = desiredPoint - measuredPoint;
+  error = measuredPoint - desiredPoint;
   float deltaT = DELAY / 1000.0;
 
   // recalculate proportional
@@ -112,6 +163,7 @@ float UpdatePID(float newMeasuredPoint) {
   Serial.printf("Integral:%f\n", resultIntegral);
   Serial.printf("Derivative:%f\n", resultDerivative);
   Serial.printf("Set_Point:%f\n", desiredPoint);
+  printArray(measurements, SIZE);
 
   Serial.println();
 
