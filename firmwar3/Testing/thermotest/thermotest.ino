@@ -117,18 +117,18 @@ void loop() {
 }
 
 // points
-double desiredPoint = 260.0; // set point
+double desiredPoint = 60.0; // set point
 double measuredPoint; // plant measurement
 double error = -9999;  // set to some absurd default value
 
 // gains
-double kProportional = 1.0;  // proportional gain
-double kIntegral = 1.0;    // integral gain
+double kProportional = 0.4;  // proportional gain
+double kIntegral = 0.001;    // integral gain
 double kDerivative = 1.0;  // derivative gain
 
 // clamping limits
-const double MIN = -500;
-const double MAX = 500;
+const double MIN = -10;
+const double MAX = 10;
 bool isClamped = false;
 
 // storage variables
@@ -165,7 +165,6 @@ double UpdatePID(double newMeasuredPoint) {
     lastError = measurements[SIZE-1] - desiredPoint;
 
     derivative = (error - lastError) / (deltaT * SIZE);
-    Serial.println(deltaT * SIZE);
   }
   resultDerivative = derivative * kDerivative;
 
@@ -179,6 +178,10 @@ double UpdatePID(double newMeasuredPoint) {
   Serial.println();
 
   isClamped = isPIDIOEqual(error, sum) & clamp(sum);
+  Serial.printf("Result:%f\n", sum);
+  Serial.printf("IsClamped:%i\n", isClamped);
+
+  Serial.println();
 
   return sum;
 }
