@@ -20,6 +20,8 @@ const int SIZE = 12;
 SPISettings thermocouple(4300000, MSBFIRST, SPI_MODE0);
 
 // Helper functions
+#define sgn(x) ((x) < 0 ? -1 : ((x) > 0 ? 1 : 0))
+
 //Sliiiiiiiiiiiiide to the left
 // <--<--<--
 // [1, 2, 3] -> [2, 3, 0]
@@ -102,7 +104,7 @@ void loop() {
 
   auto result = UpdatePID(tempC);
 
-  if(result < -1.0) {
+  if(result < 0.0) {
     HeaterON();
     Serial.println("ON");
   } else {
@@ -123,6 +125,11 @@ double error = -9999;  // set to some absurd default value
 double kProportional = 1.0;  // proportional gain
 double kIntegral = 1.0;    // integral gain
 double kDerivative = 1.0;  // derivative gain
+
+// clamping limits
+const double MIN = -500;
+const double MAX = 500;
+bool isClamped = false;
 
 // storage variables
 double measurements[SIZE];
@@ -148,8 +155,10 @@ double UpdatePID(double newMeasuredPoint) {
   resultProportional = error * kProportional;
 
   // recalculate integral
-  integral += error;
-  resultIntegral = integral * kIntegral;
+  if(!isClamped) {
+    integral += error;
+    resultIntegral = integral * kIntegral;
+  }
 
   // recalculate derivative
   if(measurements[SIZE-1] != 0.0) {
@@ -160,7 +169,7 @@ double UpdatePID(double newMeasuredPoint) {
   }
   resultDerivative = derivative * kDerivative;
 
-  //double sum = resultProportional + resultIntegral + resultDerivative;
+  double sum = resultProportional + resultIntegral; //+ resultDerivative;
   Serial.printf("Proportional:%f\n", resultProportional);
   Serial.printf("Integral:%f\n", resultIntegral);
   Serial.printf("Derivative:%f\n", resultDerivative);
@@ -169,5 +178,37 @@ double UpdatePID(double newMeasuredPoint) {
 
   Serial.println();
 
-  return resultProportional;
+  isClamped = isPIDIOEqual(error, sum) & clamp(sum);
+
+  return sum;
+}
+
+/**
+ * Clamp the final result from the PID controller.
+ *
+ * @param[in,out] sum The result from the PID controller
+ * @returns Whether or not the result was clamped.
+ * @retval 1 Result was clamped
+ * @retval 0 Result was NOT clamped
+ */
+bool clamp(double& sum) {
+  if(sum > MAX) {
+    sum = MAX;
+  } else if (sum < MIN) {
+    sum = MIN;
+  } else {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Check whether the signs on the Error and Sum are the same
+ * 
+ * @param[in] error The error input into the PID controller
+ * @param[in] sum The (unclamped) result from the PID controller.
+ */
+bool isPIDIOEqual(double error, double sum) {
+  return sgn(error) == sgn(sum);
 }
