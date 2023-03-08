@@ -16,13 +16,18 @@ class ExtruderHeater {
 public:
   // Default Constructor
   ExtruderHeater();
+  // Pass default target temperature
+  ExtruderHeater(double);
 
+  void setTarget(double);
   void setHeater(unsigned int);
   void setCS(unsigned int);
 
 private:
   void HeaterOn();
   void HeaterOff();
+
+  double target;
 
   SPISettings thermocouple;
 

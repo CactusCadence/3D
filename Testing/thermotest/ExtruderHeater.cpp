@@ -15,7 +15,7 @@
  * Default Constructor
 */
 ExtruderHeater::ExtruderHeater()
-    : DELAY(250), BUFFER_SIZE(12)
+    : target(-1.0), DELAY(250), BUFFER_SIZE(12)
 {
     thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
@@ -23,6 +23,32 @@ ExtruderHeater::ExtruderHeater()
     setCS(10);
 
     SPI.begin();
+}
+
+/**
+ * Pass default target temperature
+*/
+ExtruderHeater::ExtruderHeater(double newTarget)
+    : target(newTarget), DELAY(250), BUFFER_SIZE(12)
+{
+    thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
+
+    setHeater(9);
+    setCS(10);
+
+    SPI.begin();
+}
+
+/**
+ * Set the target temperature in degrees C for the PID
+ * 
+ * @param[in] newTarget Target temperature in degrees C
+*/
+void ExtruderHeater::setTarget(double newTarget) {
+
+    target = newTarget;
+
+    return;
 }
 
 /**
