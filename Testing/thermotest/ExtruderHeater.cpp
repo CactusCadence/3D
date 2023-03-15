@@ -100,6 +100,10 @@ void ExtruderHeater::Update() {
             
             // run the PID controller
 
+        } else {
+
+            // turn off the heater if thermocouple data is invalid
+            heaterOff();
         }
     }
 }
