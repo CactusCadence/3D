@@ -31,6 +31,8 @@ void HeaterON() { digitalWrite(heaterRelay, LOW); }
 void HeaterOFF() { digitalWrite(heaterRelay, HIGH); }
 
 void loop() {
+  //heater.Update();
+
   // basic readout test, just print the current temp
   uint16_t byteBuffer = 0x0000;
 
@@ -43,22 +45,47 @@ void loop() {
   SPI.endTransaction();
   digitalWrite(thermocoupleCS, HIGH);
 
-  double tempC = (byteBuffer >> 3) *  0.25;
+  if(verifyThermocoupleData(byteBuffer)) {
+    double tempC = (byteBuffer >> 3) *  0.25;
 
-  Serial.printf("Actual:%f\n",tempC);
+    Serial.printf("Actual:%f\n", tempC);
 
-  auto result = UpdatePID(tempC);
+    auto result = UpdatePID(tempC);
 
-  if(result < 0.0) {
-    HeaterON();
-    Serial.println("ON");
-  } else {
+    if(result < 0.0) {
+      HeaterON();
+      Serial.println("ON");
+    } else {
+      HeaterOFF();
+      Serial.println("OFF");
+    }
+  }
+  else {
     HeaterOFF();
     Serial.println("OFF");
   }
 
   // For the MAX6675 to update, you must delay AT LEAST 250ms between reads!
   delay(DELAY);
+}
+
+const uint16_t INPUTMASK = 0b0000000000000100;
+bool verifyThermocoupleData(uint16_t buffer) {
+
+  // Is the MAX6675 connected?
+  if(buffer == 0) {
+    Serial.println("MAX6675 not connected.");
+    return false;
+  }
+
+  // Is a thermocouple connected to MAX6675?
+  uint16_t result = buffer & INPUTMASK;
+  if(result > 0) {
+    Serial.println("Thermocouple not connected to MAX6675");
+    return false;
+  }
+
+  return true;
 }
 
 // points
