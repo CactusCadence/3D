@@ -69,7 +69,7 @@ void loop() {
   delay(DELAY);
 }
 
-const uint16_t INPUTMASK = 0b0000000000000100;
+const uint16_t INPUTMASK = 0b100;
 bool verifyThermocoupleData(uint16_t buffer) {
 
   // Is the MAX6675 connected?
