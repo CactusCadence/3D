@@ -31,36 +31,18 @@ void HeaterON() { digitalWrite(heaterRelay, LOW); }
 void HeaterOFF() { digitalWrite(heaterRelay, HIGH); }
 
 void loop() {
-  //heater.Update();
+  heater.Update();
 
-  // basic readout test, just print the current temp
-  uint16_t byteBuffer = 0x0000;
+  double tempC = heater.getTemperature();
 
-  //drive CS low & start a clock signal at 4.3MHz
-  digitalWrite(thermocoupleCS, LOW);
-  SPI.beginTransaction(thermocouple);
+  Serial.printf("Actual:%f\n", tempC);
 
-  byteBuffer = SPI.transfer16(NO_OP);
+  auto result = UpdatePID(tempC);
 
-  SPI.endTransaction();
-  digitalWrite(thermocoupleCS, HIGH);
-
-  if(verifyThermocoupleData(byteBuffer)) {
-    double tempC = (byteBuffer >> 3) *  0.25;
-
-    Serial.printf("Actual:%f\n", tempC);
-
-    auto result = UpdatePID(tempC);
-
-    if(result < 0.0) {
-      HeaterON();
-      Serial.println("ON");
-    } else {
-      HeaterOFF();
-      Serial.println("OFF");
-    }
-  }
-  else {
+  if(result < 0.0) {
+    HeaterON();
+    Serial.println("ON");
+  } else {
     HeaterOFF();
     Serial.println("OFF");
   }
