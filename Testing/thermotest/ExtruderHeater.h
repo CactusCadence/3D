@@ -23,6 +23,8 @@ public:
   void setHeater(unsigned int);
   void setCS(unsigned int);
 
+  double getTemperature();
+
   void Update();
 
 private:
@@ -30,6 +32,13 @@ private:
 
   void heaterOn();
   void heaterOff();
+
+  bool readThermocouple();
+  bool isThermocoupleDataValid(uint16_t);
+  bool isAmplifierConnected(uint16_t);
+  bool isThermocoupleConnected(uint16_t);
+
+  double temperature;
 
   double target;
 

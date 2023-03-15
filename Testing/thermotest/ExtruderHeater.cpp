@@ -9,13 +9,15 @@
 #include "ExtruderHeater.h"
 #include "helpers.h"
 
-#define NOOP 0x00
+#define NO_OP 0x00
+
+const uint16_t INPUTMASK = 0b100;
 
 /**
  * Default Constructor
 */
 ExtruderHeater::ExtruderHeater()
-    : target(-1.0), BUFFER_SIZE(12), DELAY(250), lastTime(0)
+    : temperature(0.0), target(-1.0), BUFFER_SIZE(12), DELAY(250), lastTime(0)
 {
     thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
@@ -78,6 +80,14 @@ void ExtruderHeater::setCS(unsigned int pin) {
 }
 
 /**
+ * @returns The last read temperature of the thermocouple
+*/
+double ExtruderHeater::getTemperature() {
+    
+    return temperature;
+}
+
+/**
  * Called once per loop; read the thermocouple
  * and run the PID controller
 */
@@ -86,17 +96,107 @@ void ExtruderHeater::Update() {
     // check the elapsed time (non-blocking)
     if(checkTime()) {
 
-        // read the thermocouple
-        
+        if(readThermocouple()) {
+            
+            // run the PID controller
 
-        // run the PID controller
-
+        }
     }
 }
 
 /**
+ * Read from the thermocouple amplifier connected to the SPI bus.
+ * 
+ * @returns Whether or not the thermocouple read successfully.
+ * @retval true The thermocouple was read successfully.
+ * @retval false The thermocouple was not read successfully.
+ * (Either because the MAX was disconnected, or thermocouple is disconnected)
+*/
+bool ExtruderHeater::readThermocouple() {
+
+    // basic readout test, just print the current temp
+    uint16_t byteBuffer = 0x0000;
+
+    //drive CS low & start a clock signal at 4.3MHz
+    digitalWrite(thermocoupleCS, LOW);
+    SPI.beginTransaction(thermocouple);
+
+    byteBuffer = SPI.transfer16(NO_OP);
+
+    SPI.endTransaction();
+    digitalWrite(thermocoupleCS, HIGH);
+
+    if(!isThermocoupleDataValid(byteBuffer)) {
+        return false;
+    }
+
+    temperature = (byteBuffer >> 3) *  0.25;
+
+    return true;
+}
+
+/**
+ * Verify incoming data from the SPI bus
+ * 
+ * @param [in] buffer Byte buffer from the SPI bus
+ * 
+ * @returns Whether or not the data is valid
+ * @retval true Data is valid
+ * @retval false Data is invalid (either amp is not connected, or thermocouple is not connected)
+*/
+bool ExtruderHeater::isThermocoupleDataValid(uint16_t buffer) {
+
+    // Is the MAX6675 connected?
+    return isAmplifierConnected(buffer) || isThermocoupleConnected(buffer);
+
+    if(buffer == 0) {
+        Serial.println("MAX6675 not connected.");
+        return false;
+    }
+
+    // Is a thermocouple connected to MAX6675?
+    uint16_t result = buffer & INPUTMASK;
+    if(result > 0) {
+        Serial.println("Thermocouple not connected to MAX6675");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Determine whether or not the amplifier is connected
+ * 
+ * @param [in] buffer Byte buffer from the SPI bus
+ * 
+ * @returns Whether or not amp is connected
+ * @retval true Amp is connected
+ * @retval false Amp is not connected
+*/
+bool ExtruderHeater::isAmplifierConnected(uint16_t buffer) {
+
+    return buffer != 0;
+}
+
+/**
+ * Determine whether or not a thermocouple is connected to the amp
+ * 
+ * @param [in] buffer Byte buffer from the SPI bus
+ * 
+ * @returns Whether or not a thermocouple is connected
+ * @retval true Thermocouple is connected
+ * @retval false Thermocouple is not connected
+*/
+bool ExtruderHeater::isThermocoupleConnected(uint16_t buffer) {
+    
+    uint16_t result = buffer & INPUTMASK;
+
+    return result != 0b100;
+}
+
+/**
  * Check the elapsed time since last call. If enough time has
- * passed according to @param DELAY, update the last recorded time
+ * passed according to DELAY, update the last recorded time
  * 
  * @returns Whether enough time has passed
  * @retval true Enough time has passed; last recorded time was updated
