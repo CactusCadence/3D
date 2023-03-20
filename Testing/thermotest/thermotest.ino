@@ -10,6 +10,7 @@ ExtruderHeater heater;
 
 void setup() {
   Serial.begin(9600);
+  heater.setTarget(175.0);
 
   // wait for MAX chip to stabilize
   delay(DELAY);
