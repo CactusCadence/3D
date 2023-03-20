@@ -8,7 +8,7 @@
 // [1, 2, 3] -> [2, 3, 0]
 void SlideLeft(double* arr, unsigned int size)
 {
-  memmove(arr, arr + 1, sizeof(double) * size);
+  memmove(arr, arr + 1, sizeof(double) * (size-1));
   arr[size - 1] = 0.0;
 
   return;
@@ -19,7 +19,7 @@ void SlideLeft(double* arr, unsigned int size)
 // [1, 2, 3] -> [0, 1, 2]
 void SlideRight(double* arr, unsigned int size)
 {
-  memmove(arr + 1, arr, sizeof(double) * size);
+  memmove(arr + 1, arr, sizeof(double) * (size-1));
   arr[0] = 0.0;
 
   return;
