@@ -70,7 +70,6 @@ private:
   bool isClamped;
 
   // storage variables
-  double measurements[BUFFER_SIZE];
   double integral = 0.0;
   double derivative = 0.0;
 
@@ -78,7 +77,7 @@ private:
   double resultIntegral;
   double resultDerivative;
 
-  double output;
+  double measurements[BUFFER_SIZE];
 };
 
 #endif  //INCLUDED_EXTRUDER_HEATER_H
