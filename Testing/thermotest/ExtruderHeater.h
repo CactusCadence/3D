@@ -38,18 +38,47 @@ private:
   bool isAmplifierConnected(uint16_t);
   bool isThermocoupleConnected(uint16_t);
 
-  double temperature;
-
-  double target;
+  void UpdatePID();
+  bool clamp(double&);
+  bool isPIDIOEqual(double, double);
 
   SPISettings thermocouple;
 
   unsigned int heaterRelay;
   unsigned int thermocoupleCS;
 
-  const unsigned int BUFFER_SIZE;
-  const unsigned long DELAY;
+  static const unsigned int BUFFER_SIZE = 12;
+  const unsigned long DELAY = 250;
+  const double deltaT = DELAY / 1000.0;
   unsigned long lastTime;
+
+  // PID Characteristics
+  double pidResult;
+
+  // points
+  double desiredPoint; // set point
+  double measuredPoint; // plant measurement
+
+  // gains
+  const double kProportional = 0.69;  // proportional gain
+  const double kIntegral = 0.04;    // integral gain
+  const double kDerivative = 3.2;  // derivative gain
+
+  // clamping limits
+  const double MIN = -0.5;
+  const double MAX = 0.5;
+  bool isClamped;
+
+  // storage variables
+  double measurements[BUFFER_SIZE];
+  double integral = 0.0;
+  double derivative = 0.0;
+
+  double resultProportional;
+  double resultIntegral;
+  double resultDerivative;
+
+  double output;
 };
 
 #endif  //INCLUDED_EXTRUDER_HEATER_H

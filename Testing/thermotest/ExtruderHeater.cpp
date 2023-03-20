@@ -17,7 +17,10 @@ const uint16_t INPUTMASK = 0b100;
  * Default Constructor
 */
 ExtruderHeater::ExtruderHeater()
-    : temperature(0.0), target(-1.0), BUFFER_SIZE(12), DELAY(250), lastTime(0)
+    : lastTime(0),
+    pidResult(0.0), desiredPoint(260.0),
+    measuredPoint(0.0), isClamped(false),
+    integral(0.0), derivative(0.0)
 {
     thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
@@ -29,9 +32,14 @@ ExtruderHeater::ExtruderHeater()
 
 /**
  * Pass default target temperature
+ * 
+ * @param[in] newTarget Target temperature in degrees C
 */
 ExtruderHeater::ExtruderHeater(double newTarget)
-    : target(newTarget), BUFFER_SIZE(12), DELAY(250), lastTime(0)
+    : lastTime(0),
+    pidResult(0.0), desiredPoint(newTarget),
+    measuredPoint(0.0), isClamped(false),
+    integral(0.0), derivative(0.0)
 {
     thermocouple = SPISettings(4300000, MSBFIRST, SPI_MODE0);
 
@@ -48,7 +56,7 @@ ExtruderHeater::ExtruderHeater(double newTarget)
 */
 void ExtruderHeater::setTarget(double newTarget) {
 
-    target = newTarget;
+    desiredPoint = newTarget;
 
     return;
 }
@@ -84,7 +92,7 @@ void ExtruderHeater::setCS(unsigned int pin) {
 */
 double ExtruderHeater::getTemperature() {
     
-    return temperature;
+    return measuredPoint;
 }
 
 /**
@@ -98,7 +106,14 @@ void ExtruderHeater::Update() {
 
         if(readThermocouple()) {
             
-            // run the PID controller
+          // run the PID controller
+          UpdatePID();
+
+          if(pidResult < 0.0) {
+            heaterOn();
+          } else {
+            heaterOff();
+          }
 
         } else {
 
@@ -134,7 +149,7 @@ bool ExtruderHeater::readThermocouple() {
         return false;
     }
 
-    temperature = (byteBuffer >> 3) *  0.25;
+    measuredPoint = (byteBuffer >> 3) *  0.25;
 
     return true;
 }
@@ -196,6 +211,77 @@ bool ExtruderHeater::isThermocoupleConnected(uint16_t buffer) {
     uint16_t result = buffer & INPUTMASK;
 
     return result != 0b100;
+}
+
+/**
+ * Update the PID controller
+ */
+void ExtruderHeater::UpdatePID() {
+
+  // calculate the error
+  Prepend(measuredPoint, measurements, BUFFER_SIZE);
+  double error = measuredPoint - desiredPoint;
+
+  // recalculate proportional
+  resultProportional = error * kProportional;
+
+  // recalculate integral
+  if(!isClamped) {
+    integral += error;
+    resultIntegral = integral * kIntegral;
+  }
+
+  // recalculate derivative
+  if(measurements[BUFFER_SIZE-1] != 0.0) {
+    double sum = 0.0;
+    const int AVG = 3;
+
+    // take an average of AVG error points
+    for(uint i = 1; i <= AVG; ++i)
+    {
+      double lastError = measurements[BUFFER_SIZE-i] - desiredPoint;
+
+      sum += (error - lastError) / (deltaT * BUFFER_SIZE);      
+    }
+    derivative = sum / AVG;
+  }
+  resultDerivative = derivative * kDerivative;
+
+  pidResult = resultProportional + resultIntegral + resultDerivative;
+
+  isClamped = isPIDIOEqual(error, pidResult) & clamp(pidResult);
+
+  return;
+}
+
+/**
+ * Clamp the final result from the PID controller.
+ *
+ * @param[in,out] sum The result from the PID controller
+ * @returns Whether or not the result was clamped.
+ * @retval 1 Result was clamped
+ * @retval 0 Result was NOT clamped
+ */
+bool ExtruderHeater::clamp(double& sum) {
+  if(sum > MAX) {
+    sum = MAX;
+  } else if (sum < MIN) {
+    sum = MIN;
+  } else {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Check whether the signs on the Error and Sum are the same
+ * 
+ * @param[in] error The error input into the PID controller
+ * @param[in] sum The (unclamped) result from the PID controller.
+ */
+bool ExtruderHeater::isPIDIOEqual(double error, double sum) {
+  return sgn(error) == sgn(sum);
 }
 
 /**
