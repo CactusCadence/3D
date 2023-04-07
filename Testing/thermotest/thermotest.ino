@@ -1,5 +1,8 @@
-// this example is public domain. enjoy!
-// https://learn.adafruit.com/thermocouple/
+/**
+ * thermotest.ino
+ * 
+ * Basic program for using the ExtruderHeater class
+*/
 
 #include <SPI.h>
 #include "ExtruderHeater.h"
