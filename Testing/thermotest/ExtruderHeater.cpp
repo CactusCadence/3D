@@ -146,6 +146,7 @@ bool ExtruderHeater::readThermocouple() {
     digitalWrite(thermocoupleCS, HIGH);
 
     if(!isThermocoupleDataValid(byteBuffer)) {
+
         return false;
     }
 
@@ -166,18 +167,15 @@ bool ExtruderHeater::readThermocouple() {
 bool ExtruderHeater::isThermocoupleDataValid(uint16_t buffer) {
 
     // Is the MAX6675 connected?
-    return isAmplifierConnected(buffer) || isThermocoupleConnected(buffer);
+    if(!isAmplifierConnected(buffer)) {
 
-    if(buffer == 0) {
-        Serial.println("MAX6675 not connected.");
-        return false;
+      Serial.println("Amp not connected");
+      return false;
     }
+    else if (!isThermocoupleConnected(buffer)) {
 
-    // Is a thermocouple connected to MAX6675?
-    uint16_t result = buffer & INPUTMASK;
-    if(result > 0) {
-        Serial.println("Thermocouple not connected to MAX6675");
-        return false;
+      Serial.println("Thermocouple not connected");
+      return false;
     }
 
     return true;
