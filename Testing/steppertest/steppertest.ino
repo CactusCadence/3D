@@ -4,10 +4,12 @@
  * Basic program for testing stepper motor functionality
 */
 
-#define ENABLE_PIN 5
+#define HLFB 5
 #define PULSE 6
 #define DIRECTION 7
-#define HLFB 8
+#define ENABLE_PIN 8
+
+const unsigned int INPUT_RESOLUTION = 1000;
 
 void setup() {
   // put your setup code here, to run once:
@@ -20,7 +22,14 @@ void setup() {
 
   digitalWrite(ENABLE_PIN, HIGH);
 
-  Serial.println("Balls");
+  // digitalWrite(PULSE, HIGH);
+
+  // in order to change the frequency, have to change the frequency THEN analogWrite.
+  // might be able to analog write at the 50% duty cycle & change frequency when applicable?
+  analogWriteFrequency(PULSE, INPUT_RESOLUTION * 1);
+  analogWrite(PULSE, 128);
+
+  Serial.println("Initalization Complete");
 }
 
 void loop() {
