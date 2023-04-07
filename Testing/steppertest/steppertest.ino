@@ -9,7 +9,8 @@
 #define DIRECTION 7
 #define ENABLE_PIN 8
 
-const unsigned int INPUT_RESOLUTION = 1000;
+// Keep this at 800 according to the MDPH2 guide
+const unsigned int INPUT_RESOLUTION = 800;
 
 void setup() {
   // put your setup code here, to run once:
