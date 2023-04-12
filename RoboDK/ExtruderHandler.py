@@ -19,7 +19,7 @@
 import sys
 
 from robodk import robolink    # RoboDK API
-# from robodk import robomath    # Robot toolbox
+from robodk import robomath    # Robot toolbox
 RDK = robolink.Robolink()
 
 if len(sys.argv) > 1:
@@ -41,8 +41,21 @@ print(currID)
 # If the next instruction was not a speed instruction, it should be a linear move. For the linear move,
 # record the target, then grab the robot's current position and compare the two to obtain the distance.
 
+name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 1)
+
+print(name)
+print(instructionType)
+print(isJointTarget)
+print(target)
+#target.Pose() should work and solve issue, Python is not happy
+print(joints)
+
+print(robomath.Pose_2_Motoman(target))
+
+print(type(target))
+print(type(prog))
+
 speed = -1.0
-currentPosition = robot.Joints().list()
 
 # need to convert from string to float
 isSpeed = RDK.getParam("lastSpeed")
@@ -59,7 +72,6 @@ else:
 #if move
 
 print(isSpeed)
-print(currentPosition)
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
