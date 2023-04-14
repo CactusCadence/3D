@@ -22,9 +22,10 @@ from robodk import robolink    # RoboDK API
 from robodk import robomath    # Robot toolbox
 RDK = robolink.Robolink()
 
+LASTSPEED = "LASTSPEED"
+
 if len(sys.argv) > 1:
     materialLength = float(sys.argv[1])
-    print(materialLength)
 
 # Grab the 3D print program
 prog = RDK.Item('Print3D', robolink.ITEM_TYPE_PROGRAM)
@@ -40,7 +41,6 @@ currentPosition = extruder.PoseWrt(printing_frame)
 # Get the current instruction id (returns current id if program is running)
 # See https://robodk.com/doc/en/PythonAPI/robodk.html#robodk.robolink.Item.InstructionSelect
 currID = prog.InstructionSelect()
-print(currID)
 
 # Check the next instruction. If it is a speed instruction, record it in a variable & the param. Otherwise,
 # use the recorded speed value in the param
@@ -51,12 +51,11 @@ print(currID)
 # Note: Target uses tool frame with respect to Reference Frame
 name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 1)
 
-print(name)
-print(instructionType)
+distance = None
+speed = None
 
 if(instructionType == robolink.INS_TYPE_MOVE):
     distance = robomath.distance(robomath.Pose_2_Motoman(currentPosition), robomath.Pose_2_Motoman(target))
-    print("Distance: ", (distance))
 
 elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
 
@@ -67,13 +66,15 @@ elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
     endValIndex = name.find(' ', startValIndex)
 
     speed = float(name[startValIndex:endValIndex])
-    RDK.setParam("lastSpeed", speed)
-    print("Speed variable:", (RDK.getParam("lastSpeed")))
+    RDK.setParam(LASTSPEED, speed)
 
+    #after speed, there will be a movement instruction to parse.
+    name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 2)
+    distance = robomath.distance(robomath.Pose_2_Motoman(currentPosition), robomath.Pose_2_Motoman(target))
 
-
-
+else:
+    raise Exception("Unhandled instruction type after Extruder Call")
 
 
 # Provoking an exception will display the console output if you run this script from RoboDK
-raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
+# raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
