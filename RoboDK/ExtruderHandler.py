@@ -59,18 +59,21 @@ if(instructionType == robolink.INS_TYPE_MOVE):
     print("Distance: ", (distance))
 
 elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
-    speed = -1.0
 
-    # need to convert from string to float
-    isSpeed = RDK.getParam("lastSpeed")
+    # extract speed from command string
+    # sample string "Set speed (130.0 mm/s)"
 
-    #if speed
-    if(isSpeed is None):
-        RDK.setParam("lastSpeed", 0)
-    else:
-        RDK.setParam("lastSpeed", speed + 1.0)
+    startValIndex = name.find('(') + 1
+    endValIndex = name.find(' ', startValIndex)
 
-    print("Speed param:", (isSpeed))
+    speed = float(name[startValIndex:endValIndex])
+    RDK.setParam("lastSpeed", speed)
+    print("Speed variable:", (RDK.getParam("lastSpeed")))
+
+
+
+
+
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
