@@ -32,7 +32,6 @@ robot = RDK.Item('Arm', robolink.ITEM_TYPE_ROBOT)
 
 # Since Targets are taken using the Tool Frame wrt Reference Frame,
 # we have to calculate the same thing to calculate the distance.
-
 extruder = RDK.Item("MDPH2", robolink.ITEM_TYPE_TOOL)
 printing_frame = RDK.Item("Printing Frame", robolink.ITEM_TYPE_FRAME)
 
@@ -57,6 +56,9 @@ print(name)
 print(instructionType)
 print(isJointTarget)
 print(target)
+
+distance = robomath.distance(robomath.Pose_2_Motoman(currentPosition), robomath.Pose_2_Motoman(target))
+print(distance)
 
 speed = -1.0
 
