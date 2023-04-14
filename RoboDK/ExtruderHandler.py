@@ -30,6 +30,15 @@ if len(sys.argv) > 1:
 prog = RDK.Item('Print3D', robolink.ITEM_TYPE_PROGRAM)
 robot = RDK.Item('Arm', robolink.ITEM_TYPE_ROBOT)
 
+# Since Targets are taken using the Tool Frame wrt Reference Frame,
+# we have to calculate the same thing to calculate the distance.
+
+extruder = RDK.Item("MDPH2", robolink.ITEM_TYPE_TOOL)
+printing_frame = RDK.Item("Printing Frame", robolink.ITEM_TYPE_FRAME)
+
+currentPosition = extruder.PoseWrt(printing_frame)
+print(currentPosition)
+
 # Get the current instruction id (returns current id if program is running)
 # See https://robodk.com/doc/en/PythonAPI/robodk.html#robodk.robolink.Item.InstructionSelect
 currID = prog.InstructionSelect()
@@ -41,19 +50,13 @@ print(currID)
 # If the next instruction was not a speed instruction, it should be a linear move. For the linear move,
 # record the target, then grab the robot's current position and compare the two to obtain the distance.
 
+# Note: Target uses tool frame with respect to Reference Frame
 name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 1)
 
 print(name)
 print(instructionType)
 print(isJointTarget)
 print(target)
-#target.Pose() should work and solve issue, Python is not happy
-print(joints)
-
-print(robomath.Pose_2_Motoman(target))
-
-print(type(target))
-print(type(prog))
 
 speed = -1.0
 

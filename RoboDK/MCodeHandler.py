@@ -31,4 +31,4 @@ if len(sys.argv) > 1:
     #check for a second argument depending on the first
 
 # Provoking an exception will display the console output if you run this script from RoboDK
-raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
+# raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
