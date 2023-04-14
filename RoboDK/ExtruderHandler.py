@@ -36,7 +36,6 @@ extruder = RDK.Item("MDPH2", robolink.ITEM_TYPE_TOOL)
 printing_frame = RDK.Item("Printing Frame", robolink.ITEM_TYPE_FRAME)
 
 currentPosition = extruder.PoseWrt(printing_frame)
-print(currentPosition)
 
 # Get the current instruction id (returns current id if program is running)
 # See https://robodk.com/doc/en/PythonAPI/robodk.html#robodk.robolink.Item.InstructionSelect
@@ -54,29 +53,24 @@ name, instructionType, moveType, isJointTarget, target, joints = prog.Instructio
 
 print(name)
 print(instructionType)
-print(isJointTarget)
-print(target)
 
-distance = robomath.distance(robomath.Pose_2_Motoman(currentPosition), robomath.Pose_2_Motoman(target))
-print(distance)
+if(instructionType == robolink.INS_TYPE_MOVE):
+    distance = robomath.distance(robomath.Pose_2_Motoman(currentPosition), robomath.Pose_2_Motoman(target))
+    print("Distance: ", (distance))
 
-speed = -1.0
+elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
+    speed = -1.0
 
-# need to convert from string to float
-isSpeed = RDK.getParam("lastSpeed")
+    # need to convert from string to float
+    isSpeed = RDK.getParam("lastSpeed")
 
-#if speed
-if(isSpeed is None):
-    RDK.setParam("lastSpeed", 0)
-else:
-    RDK.setParam("lastSpeed", speed + 1.0)
-# elif(speed is float):
-#     speed += 1.0
-#     RDK.setParam("lastSpeed", )
+    #if speed
+    if(isSpeed is None):
+        RDK.setParam("lastSpeed", 0)
+    else:
+        RDK.setParam("lastSpeed", speed + 1.0)
 
-#if move
-
-print(isSpeed)
+    print("Speed param:", (isSpeed))
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
