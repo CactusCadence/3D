@@ -25,7 +25,7 @@ if len(sys.argv) > 1:
     print(instructionCode)
 
     if(len(sys.argv) > 2):
-        arg = int(sys.argv[2])
+        arg = float(sys.argv[2])
         print(arg)
     
     #check for a second argument depending on the first
