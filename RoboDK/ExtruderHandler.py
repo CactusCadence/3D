@@ -20,7 +20,13 @@ import sys
 
 from robodk import robolink    # RoboDK API
 from robodk import robomath    # Robot toolbox
+import serial
 RDK = robolink.Robolink()
+
+ser = serial.Serial('COM6', 9600, timeout=1.0)
+
+ser.write(b"HELLO!\n")
+print(ser.readline())
 
 LASTSPEED = "LASTSPEED"
 
