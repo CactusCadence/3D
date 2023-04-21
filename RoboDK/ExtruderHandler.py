@@ -20,15 +20,16 @@ import sys
 
 from robodk import robolink    # RoboDK API
 from robodk import robomath    # Robot toolbox
-import serial
 RDK = robolink.Robolink()
+
+import serial
 
 ser = serial.Serial('COM6', 9600, timeout=1.0)
 
 ser.write(b"HELLO!\n")
 print(ser.readline())
 
-LASTSPEED = "LASTSPEED"
+diffMaterialLength = 0
 
 if len(sys.argv) > 1:
     materialLength = float(sys.argv[1])
@@ -72,7 +73,6 @@ elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
     endValIndex = name.find(' ', startValIndex)
 
     speed = float(name[startValIndex:endValIndex])
-    RDK.setParam(LASTSPEED, speed)
 
     #after speed, there will be a movement instruction to parse.
     name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 2)
@@ -81,6 +81,8 @@ elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
 else:
     raise Exception("Unhandled instruction type after Extruder Call")
 
+print(distance)
+print(speed)
 
 # Provoking an exception will display the console output if you run this script from RoboDK
-# raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
+raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
