@@ -24,14 +24,10 @@ RDK = robolink.Robolink()
 
 import serial
 
-ser = serial.Serial('COM6', 9600, timeout=1.0)
-
-ser.write(b"HELLO!\n")
-print(ser.readline())
-
-diffMaterialLength = 0
+materialLength = 0
 
 if len(sys.argv) > 1:
+    #the amount of material to extrude for that move
     materialLength = float(sys.argv[1])
 
 # Grab the 3D print program
@@ -58,8 +54,8 @@ currID = prog.InstructionSelect()
 # Note: Target uses tool frame with respect to Reference Frame
 name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 1)
 
-distance = None
-speed = None
+distance = 0
+newSpeed = -1
 
 if(instructionType == robolink.INS_TYPE_MOVE):
     distance = robomath.distance(robomath.Pose_2_Motoman(currentPosition), robomath.Pose_2_Motoman(target))
@@ -72,7 +68,7 @@ elif(instructionType == robolink.INS_TYPE_CHANGESPEED):
     startValIndex = name.find('(') + 1
     endValIndex = name.find(' ', startValIndex)
 
-    speed = float(name[startValIndex:endValIndex])
+    newSpeed = float(name[startValIndex:endValIndex])
 
     #after speed, there will be a movement instruction to parse.
     name, instructionType, moveType, isJointTarget, target, joints = prog.Instruction(currID + 2)
@@ -82,7 +78,14 @@ else:
     raise Exception("Unhandled instruction type after Extruder Call")
 
 print(distance)
-print(speed)
+print(newSpeed)
+
+ser = serial.Serial('COM6', 9600, timeout=1.0)
+
+message = '{ distance: %f, materialLength: %f, newSpeed: %f }' % (distance, materialLength, newSpeed)
+
+ser.write(message.encode('utf-8'))
+
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
