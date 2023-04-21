@@ -27,7 +27,7 @@ import serial
 materialLength = 0
 
 if len(sys.argv) > 1:
-    #the amount of material to extrude for that move
+    #the amount of material extruded since beginning of program (unless 0, which is a reset(?))
     materialLength = float(sys.argv[1])
 
 # Grab the 3D print program
@@ -80,12 +80,12 @@ else:
 print(distance)
 print(newSpeed)
 
-ser = serial.Serial('COM6', 9600, timeout=1.0)
-
 message = '{ distance: %f, materialLength: %f, newSpeed: %f }' % (distance, materialLength, newSpeed)
+print(message)
 
+ser = serial.Serial('COM6', 9600, timeout=1.0)
 ser.write(message.encode('utf-8'))
-
+ser.close()
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')

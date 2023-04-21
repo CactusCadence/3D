@@ -17,7 +17,9 @@ String commandString = "";
 // Commanded distance to travel
 float distance;
 // Commanded length of material to extrude
-float materialLength;
+float materialToExtrude;
+float commandedMaterialLength;
+float lastMaterialLength;
 // Robot Movement Speed
 float speed;
 
@@ -40,13 +42,29 @@ void loop() {
     else
     {
       Serial.println("New Command Variables:");
-      float distance = cmd["distance"];
-      float materialLength = cmd["materialLength"];
+      distance = cmd["distance"];
+      commandedMaterialLength = cmd["materialLength"];
       float newSpeed = cmd["newSpeed"];
 
       Serial.printf("%s: %f\n", "distance", distance);
-      Serial.printf("%s: %f\n", "materialLength", materialLength);
+      Serial.printf("%s: %f\n", "materialLength", commandedMaterialLength);
       Serial.printf("%s: %f\n", "newSpeed", newSpeed);
+
+      if(commandedMaterialLength != 0.0)
+      {
+        materialToExtrude = commandedMaterialLength - lastMaterialLength;
+        lastMaterialLength = commandedMaterialLength;
+      }
+      else
+      {
+        materialToExtrude = commandedMaterialLength;
+        lastMaterialLength = commandedMaterialLength;
+      }
+
+      if(newSpeed != -1.0)
+      {
+        speed = newSpeed;
+      }
 
       Serial.println();
     }
