@@ -5,6 +5,12 @@
 unsigned long ledOnTime = 0;
 const unsigned long ONTIME = 50;
 
+// amount of material extruded per revolution (mm)
+const float MATERIAL_PER_REV = 17.4625;
+
+// Keep this at 800 according to the MDPH2 guide
+const unsigned int INPUT_RESOLUTION = 800;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -67,9 +73,21 @@ void loop() {
       }
 
       Serial.println();
+
+      calculateExtrusionInstruction();
     }
   }
 
+}
+
+void calculateExtrusionInstruction() {
+
+  float instructionTime = distance / speed;
+  float numberRevolutions = materialToExtrude / MATERIAL_PER_REV;
+  float revolutionRate = numberRevolutions / instructionTime;
+
+  float analogFrequency = revolutionRate * INPUT_RESOLUTION;
+  Serial.printf("Analog Freq: %f\n", analogFrequency);
 }
 
 void UpdateLED()
