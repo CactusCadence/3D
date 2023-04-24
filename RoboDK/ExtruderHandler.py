@@ -80,7 +80,7 @@ else:
 print(distance)
 print(newSpeed)
 
-message = '{ distance: %f, materialLength: %f, newSpeed: %f }' % (distance, materialLength, newSpeed)
+message = '{ distance: %f, materialLength: %f, newSpeed: %f }\n' % (distance, materialLength, newSpeed)
 print(message)
 
 ser = serial.Serial('COM6', 9600, timeout=1.0)
@@ -88,4 +88,4 @@ ser.write(message.encode('utf-8'))
 ser.close()
 
 # Provoking an exception will display the console output if you run this script from RoboDK
-raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
+# raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
