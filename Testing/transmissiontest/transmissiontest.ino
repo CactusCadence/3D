@@ -30,12 +30,31 @@ float lastMaterialLength;
 float speed;
 
 void loop() {
-  UpdateLED();
+  //UpdateLED();
+  UpdateTransmission();
+}
 
-  // put your main code here, to run repeatedly:
-  if(Serial.available()) {
+void calculateExtrusionInstruction() {
+
+  float instructionTime = distance / speed;
+  float numberRevolutions = materialToExtrude / MATERIAL_PER_REV;
+  float revolutionRate = numberRevolutions / instructionTime;
+
+  float analogFrequency = revolutionRate * INPUT_RESOLUTION;
+  Serial.printf("Analog Freq: %f\n", analogFrequency);
+
+  if(abs(analogFrequency) < 10.0 && analogFrequency > 0.0)
+  {
+    Serial.printf("Analog BAD: %f\n", analogFrequency);
     digitalWrite(LEDPIN, HIGH);
-    ledOnTime = millis();
+  }
+}
+
+void UpdateTransmission() {
+
+  if(Serial.available()) {
+    //digitalWrite(LEDPIN, HIGH);
+    //ledOnTime = millis();
     commandString = Serial.readStringUntil('\n');
     Serial.print("New Command String: ");
     Serial.println(commandString);
@@ -77,21 +96,9 @@ void loop() {
       calculateExtrusionInstruction();
     }
   }
-
 }
 
-void calculateExtrusionInstruction() {
-
-  float instructionTime = distance / speed;
-  float numberRevolutions = materialToExtrude / MATERIAL_PER_REV;
-  float revolutionRate = numberRevolutions / instructionTime;
-
-  float analogFrequency = revolutionRate * INPUT_RESOLUTION;
-  Serial.printf("Analog Freq: %f\n", analogFrequency);
-}
-
-void UpdateLED()
-{
+void UpdateLED() {
   if(ledOnTime + ONTIME < millis())
   {
     digitalWrite(LEDPIN, LOW);
