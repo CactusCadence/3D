@@ -81,6 +81,8 @@ void parseCommand(String& commandString) {
     return;
   }
 
+  digitalWrite(ENABLE_PIN, LOW);
+
   movementDistance = cmd["distance"];
   float commandedMaterialLength = cmd["materialLength"];
 
@@ -125,7 +127,7 @@ void commandExtruder() {
     revolutionsPerSecond = numberRevolutions / instructionTime;
   } else {
     // the instruction can happen at an arbitrary set speed
-    revolutionsPerSecond = 2.0;
+    revolutionsPerSecond = 4.0;
     instructionTime = numberRevolutions / revolutionsPerSecond;
   }
 
@@ -154,7 +156,7 @@ void commandExtruder() {
   digitalWrite(ENABLE_PIN, HIGH);
 
   extrusionStartTime = millis();
-  extrusionDuration = instructionTime * 1000.0;
+  extrusionDuration = (instructionTime * 1000.0) * 2;
   isPerformingExtrusion = true;
 }
 
