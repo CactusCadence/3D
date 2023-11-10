@@ -9,10 +9,10 @@
 #include <ArduinoJson.h>
 
 // Pin Definitions
-#define HLFB 5
-#define PULSE 6
-#define DIRECTION 7
-#define ENABLE_PIN 8
+#define HLFB 3
+#define PULSE 4
+#define DIRECTION 5
+#define ENABLE_PIN 6
 #define LEDPIN 13     //Note: 13 is linked to CLK
 
 unsigned long ledOnTimestamp = 0;
@@ -82,6 +82,7 @@ void parseCommand(String& commandString) {
   }
 
   digitalWrite(ENABLE_PIN, LOW);
+  digitalWrite(LEDPIN, LOW);
 
   movementDistance = cmd["distance"];
   float commandedMaterialLength = cmd["materialLength"];
@@ -154,6 +155,7 @@ void commandExtruder() {
   analogWrite(PULSE, 128);
 
   digitalWrite(ENABLE_PIN, HIGH);
+  digitalWrite(LEDPIN, HIGH);
 
   extrusionStartTime = millis();
   extrusionDuration = (instructionTime * 1000.0) * 2;
@@ -164,6 +166,7 @@ void UpdateExtrusionTime() {
 
   if(isPerformingExtrusion && millis() > extrusionStartTime + extrusionDuration) {
     digitalWrite(ENABLE_PIN, LOW);
+    digitalWrite(LEDPIN, LOW);
     Serial.println("Instruction done");
     isPerformingExtrusion = false;
   }
