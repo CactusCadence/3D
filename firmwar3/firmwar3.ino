@@ -5,6 +5,9 @@
   Interfaces robot controller software with the Extruder
 */
 
+#include <NativeEthernet.h>
+#include <NativeEthernetUdp.h>
+#include "UDPCommunication.h"
 
 #include <ArduinoJson.h>
 
@@ -39,6 +42,17 @@ bool isPerformingExtrusion = false;
 unsigned long extrusionStartTime = 0.0;
 unsigned long extrusionDuration = 0.0;
 
+uint8_t mac[6];
+IPAddress ip(10, 0, 0, 111);
+unsigned int localPort = 8888;
+
+// buffers for receiving and sending data
+#define MAX_PACKET_SIZE 128
+char packetBuffer[MAX_PACKET_SIZE];  // buffer to hold incoming packet
+
+// An EthernetUDP instance to let us send and receive packets over UDP
+EthernetUDP Udp;
+
 void setup() {
   // Initalize Serial Port for communication
   Serial.begin(9600);
@@ -52,6 +66,9 @@ void setup() {
   // Initalize Communication Status Led
   pinMode(LEDPIN, OUTPUT);
 
+  // Initalize Ethernet/UDP
+  SetupUDP();
+
   Serial.println("Initalization Complete");
 }
 
@@ -61,17 +78,32 @@ void loop() {
   UpdateExtrusionTime();
 }
 
+// Reads streams to see if there is any content
+// Command is in JSON format
+// Format: { distance: %f, materialLength: %f, newSpeed: %f }
 void UpdateCommand() {
-  
-  if(Serial.available()) {
 
-    auto commandString = Serial.readStringUntil('\n');
+  String commandString;
+  int packetSize = Udp.parsePacket();
+  if(packetSize) {
+    Serial.println("packet read");
+    Udp.read(packetBuffer, MAX_PACKET_SIZE);
+    commandString = packetBuffer;
+    Serial.println(commandString);
+  }
+  else if(Serial.available()) {
+
+    commandString = Serial.readStringUntil('\n');
+  }
+
+  if(commandString != "")
+  {
     parseCommand(commandString);
   }
 }
 
 void parseCommand(String& commandString) {
-
+Serial.println("parsing");
   DeserializationError error = deserializeJson(cmd, commandString.c_str());
 
   if(error) {
@@ -170,4 +202,24 @@ void UpdateExtrusionTime() {
     Serial.println("Instruction done");
     isPerformingExtrusion = false;
   }
+}
+
+void SetupUDP()
+{
+  teensyMAC(mac);
+  Ethernet.begin(mac, ip);  //Note: this WILL pause the program if no connection exists.
+
+  // Check for Ethernet hardware present
+  if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+    Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+    while (true) {
+      delay(1); // do nothing, no point running without Ethernet hardware
+    }
+  }
+  if (Ethernet.linkStatus() == LinkOFF) {
+    Serial.println("Ethernet cable is not connected.");
+  }
+
+  Udp.begin(localPort);
+  Serial.println("UDP setup complete");
 }

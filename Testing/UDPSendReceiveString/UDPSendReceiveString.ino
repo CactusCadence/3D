@@ -17,7 +17,7 @@
 #include <NativeEthernetUdp.h>
 
 // Enter a MAC address and IP address for your controller below.
-// The IP address will be dependent on your local network:
+// The IP address will be dependent on your local network (first three numbers must match):
 uint8_t mac[6];
 IPAddress ip(10, 0, 0, 111);
 
@@ -26,7 +26,7 @@ unsigned int localPort = 8888;      // local port to listen on
 #define LEDPIN 13
 
 // buffers for receiving and sending data
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
+char packetBuffer[128];  // buffer to hold incoming packet,
 char ReplyBuffer[] = "acknowledged";        // a string to send back
 
 // An EthernetUDP instance to let us send and receive packets over UDP
@@ -93,9 +93,12 @@ void loop() {
     Serial.println(Udp.remotePort());
 
     // read the packet into packetBufffer
-    Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+    Udp.read(packetBuffer, 128);
     Serial.println("Contents:");
     Serial.println(packetBuffer);
+
+    String packetString = packetBuffer;
+    Serial.println(packetString);
 
     // send a reply to the IP address and port that sent us the packet we received
     Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
