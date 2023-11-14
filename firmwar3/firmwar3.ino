@@ -75,8 +75,8 @@ void setup() {
 
 void loop() {
 
-  UpdateCommand();
-  UpdateExtruder();
+  UpdateCommand(cmd);
+  UpdateExtruder(cmd);
 }
 
 /**
@@ -117,18 +117,18 @@ void SetupUDP()
  *
  * Postcondition: The cmd JSON object is populated with the content from the stream.
  */
-void UpdateCommand() {
+void UpdateCommand(JsonDocument& command) {
 
-  DeserializationError error
+  DeserializationError error = DeserializationError::Ok;
   int packetSize = Udp.parsePacket();
 
   if(packetSize) {
     Udp.read(packetBuffer, MAX_PACKET_SIZE);
-    error = deserializeJson(cmd, packetBuffer);
+    error = deserializeJson(command, packetBuffer);
   }
   else if(Serial.available()) {
 
-    error = deserializeJson(cmd, Serial.readStringUntil('\n').c_str());
+    error = deserializeJson(command, Serial.readStringUntil('\n').c_str());
   }
 
   if(error) {
@@ -139,15 +139,12 @@ void UpdateCommand() {
   }
 }
 
-void UpdateExtruder()
+void UpdateExtruder(JsonDocument& command)
 {
-  digitalWrite(ENABLE_PIN, LOW);
-  digitalWrite(LEDPIN, LOW);
+  movementDistance = command["distance"];
+  float commandedMaterialLength = command["materialLength"];
 
-  movementDistance = cmd["distance"];
-  float commandedMaterialLength = cmd["materialLength"];
-
-  float newSpeed = cmd["newSpeed"];
+  float newSpeed = command["newSpeed"];
   if(newSpeed != -1.0)
   {
     movementSpeed = newSpeed;
@@ -220,7 +217,7 @@ void commandExtruder() {
   digitalWrite(LEDPIN, HIGH);
 
   extrusionStartTime = millis();
-  extrusionDuration = (instructionTime * 1000.0) * 2;
+  extrusionDuration = (instructionTime * 1000.0);
   isPerformingExtrusion = true;
 }
 

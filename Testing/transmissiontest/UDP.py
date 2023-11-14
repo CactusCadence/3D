@@ -2,7 +2,7 @@ import socket
 
 UDP_IP = "10.0.0.111"
 UDP_PORT = 8888
-MESSAGE = b"{ distance: 90, materialLength: 400, newSpeed: 10 }\n"
+MESSAGE = b"{ distance: 90, materialLength: 90, newSpeed: 15 }\n"
 
 print("UDP target IP: %s" % UDP_IP)
 print("UDP target port: %s" % UDP_PORT)
