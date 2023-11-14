@@ -76,35 +76,60 @@ void setup() {
 void loop() {
 
   UpdateCommand();
-  UpdateExtrusionTime();
+  UpdateExtruder();
 }
 
-// Reads streams to see if there is any content
-// Command is in JSON format
-// Format: { distance: %f, materialLength: %f, newSpeed: %f }
+/**
+ * Sets up a UDP connection
+ *
+ * Precondition: An ethernet cable is plugged into the microcontroller.
+ *               (Note: the function will freeze if no cable is plugged in)
+ *
+ * Postcondition: The Udp object is initalized and can be used to send/receive messages from
+ *                another device.
+ */
+void SetupUDP()
+{
+  teensyMAC(mac);
+  Ethernet.begin(mac, ip);  //Note: this WILL pause the program if no connection exists.
+
+  // Check for Ethernet hardware present
+  if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+    Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+    while (true) {
+      delay(1); // do nothing, no point running without Ethernet hardware
+    }
+  }
+  if (Ethernet.linkStatus() == LinkOFF) {
+    Serial.println("Ethernet cable is not connected.");
+  }
+
+  Udp.begin(localPort);
+  Serial.println("UDP setup complete");
+}
+
+/**
+ * Reads input stream options to see if any content is available.
+ *
+ * Precondition: At least one communication stream is open and available.
+ *               The text is sent in JSON format reflecting this structure:
+ *               { distance: %f, materialLength: %f, newSpeed: %f }
+ *
+ * Postcondition: The cmd JSON object is populated with the content from the stream.
+ */
 void UpdateCommand() {
 
-  String commandString;
+  DeserializationError error
   int packetSize = Udp.parsePacket();
 
   if(packetSize) {
     Udp.read(packetBuffer, MAX_PACKET_SIZE);
-    commandString = packetBuffer;
+    error = deserializeJson(cmd, packetBuffer);
   }
   else if(Serial.available()) {
 
-    commandString = Serial.readStringUntil('\n');
+    error = deserializeJson(cmd, Serial.readStringUntil('\n').c_str());
   }
-
-  if(commandString != "")
-  {
-    parseCommand(commandString);
-  }
-}
-
-void parseCommand(String& commandString) {
-
-  DeserializationError error = deserializeJson(cmd, commandString.c_str());
 
   if(error) {
     Serial.print(F("deserializeJson() failed: "));
@@ -112,7 +137,10 @@ void parseCommand(String& commandString) {
 
     return;
   }
+}
 
+void UpdateExtruder()
+{
   digitalWrite(ENABLE_PIN, LOW);
   digitalWrite(LEDPIN, LOW);
 
@@ -139,6 +167,8 @@ void parseCommand(String& commandString) {
     materialToExtrude = commandedMaterialLength;
     lastCommandedMaterialLength = commandedMaterialLength;
   }
+
+  UpdateExtrusionTime();
 }
 
 // It's commanding the extruder... but BETTER!
@@ -202,24 +232,4 @@ void UpdateExtrusionTime() {
     Serial.println("Instruction done");
     isPerformingExtrusion = false;
   }
-}
-
-void SetupUDP()
-{
-  teensyMAC(mac);
-  Ethernet.begin(mac, ip);  //Note: this WILL pause the program if no connection exists.
-
-  // Check for Ethernet hardware present
-  if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-    Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
-    while (true) {
-      delay(1); // do nothing, no point running without Ethernet hardware
-    }
-  }
-  if (Ethernet.linkStatus() == LinkOFF) {
-    Serial.println("Ethernet cable is not connected.");
-  }
-
-  Udp.begin(localPort);
-  Serial.println("UDP setup complete");
 }
