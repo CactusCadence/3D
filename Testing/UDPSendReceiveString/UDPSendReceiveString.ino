@@ -10,7 +10,7 @@
  by Michael Margolis
 
  This code is in the public domain.
- */
+*/
 
 
 #include <NativeEthernet.h>

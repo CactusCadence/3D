@@ -18,6 +18,8 @@
 #define ENABLE_PIN 6
 #define LEDPIN 13     //Note: 13 is linked to CLK
 
+#define MAX_PACKET_SIZE 128
+
 unsigned long ledOnTimestamp = 0;
 const unsigned long ONTIME = 50;
 
@@ -29,7 +31,7 @@ const float MATERIAL_PER_REV = 17.4625;
 const float MATERIAL_PER_E = 32.32;
 
 // Parsed command
-StaticJsonDocument<128> cmd;
+StaticJsonDocument<MAX_PACKET_SIZE> cmd;
 
 // Per-Instruction Variables
 float materialToExtrude;
@@ -47,7 +49,6 @@ IPAddress ip(10, 0, 0, 111);
 unsigned int localPort = 8888;
 
 // buffers for receiving and sending data
-#define MAX_PACKET_SIZE 128
 char packetBuffer[MAX_PACKET_SIZE];  // buffer to hold incoming packet
 
 // An EthernetUDP instance to let us send and receive packets over UDP
@@ -85,11 +86,10 @@ void UpdateCommand() {
 
   String commandString;
   int packetSize = Udp.parsePacket();
+
   if(packetSize) {
-    Serial.println("packet read");
     Udp.read(packetBuffer, MAX_PACKET_SIZE);
     commandString = packetBuffer;
-    Serial.println(commandString);
   }
   else if(Serial.available()) {
 
@@ -103,7 +103,7 @@ void UpdateCommand() {
 }
 
 void parseCommand(String& commandString) {
-Serial.println("parsing");
+
   DeserializationError error = deserializeJson(cmd, commandString.c_str());
 
   if(error) {
