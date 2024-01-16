@@ -28,7 +28,7 @@ const unsigned int INPUT_RESOLUTION = 800;
 // amount of material extruded per revolution (mm)
 const float MATERIAL_PER_REV = 17.4625;
 // amount of material to be extruded per E value (mm)
-const float MATERIAL_PER_E = 32.32;
+const float MATERIAL_PER_E = 1.7596;
 
 // Parsed command
 StaticJsonDocument<MAX_PACKET_SIZE> cmd;
@@ -58,6 +58,8 @@ void setup() {
   // Initalize Serial Port for communication
   Serial.begin(9600);
 
+  Serial.println("Initalization Begin");
+
   // Initalize Extruder Pins
   pinMode(ENABLE_PIN, OUTPUT);
   pinMode(PULSE, OUTPUT);
@@ -74,9 +76,9 @@ void setup() {
 }
 
 void loop() {
-
   UpdateCommand(cmd);
   UpdateExtruder(cmd);
+ 
 }
 
 /**
@@ -92,6 +94,7 @@ void SetupUDP()
 {
   teensyMAC(mac);
   Ethernet.begin(mac, ip);  //Note: this WILL pause the program if no connection exists.
+  Serial.print("Ethernet found\n");
 
   // Check for Ethernet hardware present
   if (Ethernet.hardwareStatus() == EthernetNoHardware) {

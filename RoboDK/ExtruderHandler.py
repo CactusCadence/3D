@@ -22,7 +22,7 @@ from robodk import robolink    # RoboDK API
 from robodk import robomath    # Robot toolbox
 RDK = robolink.Robolink()
 
-import serial
+import socket
 
 materialLength = 0
 
@@ -80,12 +80,22 @@ else:
 print(distance)
 print(newSpeed)
 
-message = '{ distance: %f, materialLength: %f, newSpeed: %f }\n' % (distance, materialLength, newSpeed)
+materialWeight = 1.40
+materialLength = materialLength * materialWeight
+
+#artificially scale the length so that the duration increases
+durationWeight = 1.33
+distance = distance * durationWeight
+
+message = b'{ distance: %f, materialLength: %f, newSpeed: %f }\n' % (distance, materialLength, newSpeed)
 print(message)
 
-ser = serial.Serial('COM6', 9600, timeout=1.0)
-ser.write(message.encode('utf-8'))
-ser.close()
+UDP_IP = "10.0.0.111"
+UDP_PORT = 8888
+
+sock = socket.socket(socket.AF_INET, # Internet
+                     socket.SOCK_DGRAM) # UDP
+sock.sendto(message, (UDP_IP, UDP_PORT))
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 # raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')
