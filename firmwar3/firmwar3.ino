@@ -11,11 +11,18 @@
 
 #include <ArduinoJson.h>
 
+#include <SPI.h>
+#include <SD.h>
+
 // Pin Definitions
+
+// Extruder Pins
 #define HLFB 3
 #define PULSE 4
 #define DIRECTION 5
 #define ENABLE_PIN 6
+
+// Other
 #define LEDPIN 13     //Note: 13 is linked to CLK
 
 #define MAX_PACKET_SIZE 128
@@ -44,6 +51,8 @@ bool isPerformingExtrusion = false;
 unsigned long extrusionStartTime = 0.0;
 unsigned long extrusionDuration = 0.0;
 
+unsigned long extrusionIndex = 0;
+
 uint8_t mac[6];
 IPAddress ip(10, 0, 0, 111);
 unsigned int localPort = 8888;
@@ -54,11 +63,14 @@ char packetBuffer[MAX_PACKET_SIZE];  // buffer to hold incoming packet
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
 
+// Sd Card Object
+Sd2Card card;
+
 void setup() {
   // Initalize Serial Port for communication
   Serial.begin(9600);
 
-  Serial.println("Initalization Begin");
+  Serial.println("- Initalization Begin -\n");
 
   // Initalize Extruder Pins
   pinMode(ENABLE_PIN, OUTPUT);
@@ -72,7 +84,31 @@ void setup() {
   // Initalize Ethernet/UDP
   SetupUDP();
 
-  Serial.println("Initalization Complete");
+  // Initialize SD Card
+  SdVolume volume;
+  if(!card.init(SPI_HALF_SPEED, BUILTIN_SDCARD)) {
+    Serial.println("SD could not be found.");
+  } else {
+    Serial.println("SD initialized.");
+    volume.init(card);
+
+    // print the type and size of the first FAT-type volume
+    Serial.print("Volume type is:    FAT");
+    Serial.println(volume.fatType(), DEC);
+
+    Serial.print("Volume size (Gb):  ");
+
+    uint32_t volumesize = volume.blocksPerCluster();    // clusters are collections of blocks
+    volumesize *= volume.clusterCount();       // we'll have a lot of clusters
+    volumesize /= 2048;
+    Serial.println((float)volumesize / 1024.0);
+
+    if(!SD.begin(BUILTIN_SDCARD)) {
+      Serial.println("SD card failed to initialize.");
+    }
+  }
+
+  Serial.println("\n- Initalization Complete -");
 }
 
 void loop() {
@@ -128,6 +164,7 @@ void UpdateCommand(JsonDocument& command) {
   if(packetSize) {
     Udp.read(packetBuffer, MAX_PACKET_SIZE);
     error = deserializeJson(command, packetBuffer);
+    Serial.println(extrusionIndex++);
   }
   else if(Serial.available()) {
 
