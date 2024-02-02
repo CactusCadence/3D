@@ -16,16 +16,21 @@
 # Link to RoboDK
 # RDK = Robolink()
 
+import sys
 import socket
 
-message = b'{ distance: %f, materialLength: %f, newSpeed: %f }\n' % (1, 1, 0)
+if len(sys.argv) > 1:
+  #the amount of material extruded since beginning of program (unless 0, which is a reset(?))
+  materialLength = float(sys.argv[1])
+
+message = '{extrude:%f}\n' % (materialLength)
 
 UDP_IP = "10.0.0.111"
 UDP_PORT = 8888
 
 sock = socket.socket(socket.AF_INET, # Internet
                     socket.SOCK_DGRAM) # UDP
-sock.sendto(message, (UDP_IP, UDP_PORT))
+sock.sendto(bytes(message, 'utf-8'), (UDP_IP, UDP_PORT))
 
 # Provoking an exception will display the console output if you run this script from RoboDK
 # raise Exception('Display output. If program was run accidentally, move the error message above the pause button on RoboDK and click fast. (Shortcut is Backspace)')

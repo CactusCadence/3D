@@ -65,6 +65,7 @@ EthernetUDP Udp;
 
 // Sd Card Object
 Sd2Card card;
+File extrusionInstructions;
 
 void setup() {
   // Initalize Serial Port for communication
@@ -106,6 +107,8 @@ void setup() {
     if(!SD.begin(BUILTIN_SDCARD)) {
       Serial.println("SD card failed to initialize.");
     }
+
+    extrusionInstructions = SD.open("instructions.txt", FILE_WRITE_BEGIN);
   }
 
   Serial.println("\n- Initalization Complete -");
@@ -163,8 +166,15 @@ void UpdateCommand(JsonDocument& command) {
 
   if(packetSize) {
     Udp.read(packetBuffer, MAX_PACKET_SIZE);
-    error = deserializeJson(command, packetBuffer);
+    
+    extrusionInstructions = SD.open("instructions.txt", FILE_WRITE);
+    extrusionInstructions.write(packetBuffer, packetSize);
+    extrusionInstructions.close();
+
+    Serial.write(packetBuffer, packetSize);
     Serial.println(extrusionIndex++);
+
+    error = deserializeJson(command, packetBuffer);
   }
   else if(Serial.available()) {
 
