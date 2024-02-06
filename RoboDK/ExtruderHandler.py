@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
   #the amount of material extruded since beginning of program (unless 0, which is a reset(?))
   materialLength = float(sys.argv[1])
 
-message = '{extrude:%f}\n' % (materialLength)
+message = '{extrude:%f}\n' % (-9999.0)
 
 UDP_IP = "10.0.0.111"
 UDP_PORT = 8888

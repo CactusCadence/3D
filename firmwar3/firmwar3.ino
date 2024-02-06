@@ -64,9 +64,12 @@ File extrusionInstructions;
 
 struct {
   bool toExtrude = false;
+  bool isBypass = false;
   float movementSpeed;
   float extrusionValue;
 } ExtrusionInstruction;
+
+float CHECK_BYPASS = -9999.0;
 
 void setup() {
   // Initalize Serial Port for communication
@@ -176,11 +179,15 @@ void UpdateCommand(JsonDocument& udpCommand) {
     error = deserializeJson(sdCommand, instructionString.c_str());
 
     // Ensure that the two commands are the same
-    if (udpCommand["extrude"] == sdCommand["extrude"]) {
+    if (udpCommand["extrude"] == sdCommand["extrude"] || udpCommand["extrude"] == CHECK_BYPASS) {
       // Serial.printf("Extruding at: %f\n", sdCommand["extrude"]);
       ExtrusionInstruction.extrusionValue = sdCommand["extrude"];
       ExtrusionInstruction.movementSpeed = sdCommand["speed"];
       ExtrusionInstruction.toExtrude = true;
+
+      if (udpCommand["extrude"] == CHECK_BYPASS) {
+        ExtrusionInstruction.isBypass = true;
+      }
     } else {
       Serial.println("UDP and SD command mismatch!");
       Serial.printf("UDP: %f, SD: %f\n\n", (float)udpCommand["extrude"], (float)sdCommand["extrude"]);
@@ -236,6 +243,10 @@ void commandExtruder() {
     // the instruction can happen at an arbitrary set speed
     revolutionsPerSecond = 2.0;
     instructionTime = numberRevolutions / revolutionsPerSecond;
+  }
+
+  if (ExtrusionInstruction.isBypass) {
+    instructionTime = 9999;
   }
 
   // Analog frequency to achieve the given rev/s
