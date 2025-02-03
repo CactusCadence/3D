@@ -6,7 +6,7 @@ def handleFanOn():
 def handleFanOff():
     pass
 
-def handleTemperatureAsync():
+def handleTemperatureAsync():gti
     pass
 
 def handleTemperatureSync():
@@ -16,7 +16,7 @@ def handleTemperatureSync():
 callbacks = {
     106: handleFanOn,
     107: handleFanOff,
-    104: handleTemperatureAsync,
+    104: handleTemperatureAsync, #penis
     109: handleTemperatureSync,
 }
 
