@@ -6,7 +6,7 @@ def handleFanOn():
 def handleFanOff():
     pass
 
-def handleTemperatureAsync():gti
+def handleTemperatureAsync():
     pass
 
 def handleTemperatureSync():
