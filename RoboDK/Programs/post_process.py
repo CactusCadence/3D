@@ -4,8 +4,8 @@
 job_dir = "./Mount/"
 job_file = "M_PRINT.JBI"
 
-# mode = "D" #delete
-mode = "C" #comment
+mode = "D" #delete
+# mode = "C" #comment
 
 # Outputs ------------------------------------------
 # Files starting with the mode prefix
@@ -32,19 +32,20 @@ with open(job_dir + job_file,'r') as job:
             ## in the header blocks
         elif ln != "END":
             ## List of files to call
+            ln = ln.replace("PRINT3D",mode+"PRINT3D")
             fileList.append(ln.replace("CALL JOB:","")+".JBI")
-        outfile += ln + "\r\n"
+        outfile += ln + "\n"
         
 # Write new job file
-with open(job_dir + mode + job_file,'w') as job:
+with open(job_dir + "outputs/" + mode + job_file,'w') as job:
     job.write(outfile)
-    
+
 # Go through other job files
 # Remove calls
 # Rename to reflect mode
 for fname in fileList:
     out_job_file = ""
-    with open(job_dir + fname,"r") as job:
+    with open(job_dir + fname[1:len(fname)],"r") as job:
         for line in job:
             ln = line.strip()
             if mode == "replace":
@@ -54,7 +55,7 @@ for fname in fileList:
                     continue
             if "//NAME" in ln:
                 ln = "//NAME "+ mode + ln[7:len(ln)]
-            out_job_file += ln + "\r\n"
+            out_job_file += ln + "\n"
     # Write the new job file
-    with open(job_dir + mode+fname,"w") as job:
+    with open(job_dir + "outputs/" +fname,"w") as job:
         job.write(out_job_file)
